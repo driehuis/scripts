@@ -1,0 +1,36 @@
+#!/bin/sh
+# A simple script to resize all pictures, passed on the command line, to
+# a maximum size, preserving aspect ratio and EXIF information.
+# By default, the maximum size is 1920x1920. ImageMagick will take the
+# higher of the two dimensions, so a 2000x1500 image will be scaled to
+# 1920x1440 to preserve aspect ratio. A different size can be passed
+# through the environment, e.g.
+#	env TARGET_RES=700x700 maxpect img_02*.jpg
+# Resized files are not renamed, and are saved in a directory "maxpect"
+# (which will be created if necessary).
+# The script will try to set the modification time to the timestamp from
+# the EXIF information, or if that's not available, it tries to preserve
+# the mtime from the original file.
+# Requires the imagemagick and jhead packages.
+
+target_res=${TARGET_RES:-"1920x1920"}
+ionice -n 7 -c 2 -p $$
+renice 10 $$
+
+[ -d maxpect ] || mkdir maxpect
+
+maxpect() {
+	file="$1"
+	quality=`identify -verbose "$file" | grep '^ *Quality:' | awk '{print $2}'`
+	jpeg_quality=""
+	if [ -n "$quality" ] && [ $quality -gt 85 ] ; then
+		jpeg_quality="-quality 85"
+	fi
+	convert "$file" -resize "$target_res>" $jpeg_quality maxpect/"$file"
+	jhead -ft maxpect/"$file" > /dev/null || touch -r "$file" maxpect/"$file"
+}
+
+for a in "$@"
+do
+	maxpect "$a"
+done
