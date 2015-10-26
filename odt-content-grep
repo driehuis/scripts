@@ -1,0 +1,10 @@
+#!/bin/sh
+
+# Script to grep inside the contents portion of an OpenOffice .odt file.
+# Bugs: the file name is the first argument, contrary to normal grep usage.
+
+die() { echo "$@"; exit 1; }
+file="$1"; shift
+[ -f "$file" ] || die "Usage: $0 file.odt [grep options]"
+
+unzip -p "$file" content.xml | grep "$@"
