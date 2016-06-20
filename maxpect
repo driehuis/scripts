@@ -7,17 +7,19 @@
 # through the environment, e.g.
 #	env TARGET_RES=700x700 maxpect img_02*.jpg
 # Resized files are not renamed, and are saved in a directory "maxpect"
-# (which will be created if necessary).
+# (or whatever MAXPECT_OUTDIR is set to; the directory which will be created
+# if necessary).
 # The script will try to set the modification time to the timestamp from
 # the EXIF information, or if that's not available, it tries to preserve
 # the mtime from the original file.
 # Requires the imagemagick and jhead packages.
 
 target_res=${TARGET_RES:-"1920x1920"}
+outdir=${MAXPECT_OUTDIR:-"maxpect"}
 ionice -n 7 -c 2 -p $$
 renice 10 $$
 
-[ -d maxpect ] || mkdir maxpect
+[ -d "$outdir" ] || mkdir "$outdir"
 
 maxpect() {
 	file="$1"
@@ -26,8 +28,8 @@ maxpect() {
 	if [ -n "$quality" ] && [ $quality -gt 85 ] ; then
 		jpeg_quality="-quality 85"
 	fi
-	convert "$file" -resize "$target_res>" $jpeg_quality maxpect/"$file"
-	jhead -ft maxpect/"$file" > /dev/null || touch -r "$file" maxpect/"$file"
+	convert "$file" -resize "$target_res>" $jpeg_quality "$outdir"/"$file"
+	jhead -ft "$outdir"/"$file" > /dev/null || touch -r "$file" "$outdir"/"$file"
 }
 
 for a in "$@"
