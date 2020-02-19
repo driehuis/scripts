@@ -24,7 +24,7 @@ do
 		if [ -e "$out" ] ; then
 			echo "Not overwriting $out"
 		else
-			echo HandBrakeCLI -i "$file" -o "$out"  -e $target_codec -q $target_q -B $target_br --height $target_hgt
+			HandBrakeCLI -i "$file" -o "$out"  -e $target_codec -q $target_q -B $target_br --height $target_hgt
 		fi
 	fi
 done
