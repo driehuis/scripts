@@ -44,13 +44,17 @@ def save_unicode_list(outfile, file):
             print("{0} {1}".format(code, unicode[code]), file=f)
 
 
-def compare_nam(nam, file):
-    nam_list = {}
-    with open(nam, 'r') as f:
+def build_nam_list(nam_file, nam_list = {}):
+    with open(nam_file, 'r') as f:
         for line in f.readlines():
             m = re.match(r'0x(\S+)\s*(.*)', line)
             if m:
                 nam_list[m.group(1)] = m.group(2)
+    return nam_list
+
+
+def compare_nam(nam, file):
+    nam_list = build_nam_list(nam)
     (list, _) = scan_unicode(file)
     sorted_unicode = sorted(list.items(), key=operator.itemgetter(1))
     unicode = dict((v, k) for k, v in sorted_unicode)
