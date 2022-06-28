@@ -3,7 +3,7 @@
 # Recode a video to x264 480p. Saves a copy in a subdirectory "vaxpect".
 # Does nothing if the video is already 480p or less.
 # Call as
-#	env VAXPECT_HEIGHT=720 VAXPECT_Q=23 VAXPECT_AUDIO_BITRATE=160 vaxpect *.mp4
+#	env VAXPECT_HEIGHT=720 VAXPECT_Q=29 VAXPECT_AUDIO_BITRATE=96 vaxpect *.mp4
 # to encode to a different height or quality.
 # x264 quality 26 is acceptable. Increase the value to compact more at
 # the expense of quality; lower to 23 or 20 to increase quality but
@@ -11,20 +11,24 @@
 
 target_hgt=${VAXPECT_HEIGHT:-"480"}
 target_q=${VAXPECT_Q:-"26"}
-target_br=${VAXPECT_AUDIO_BITRATE:-"96"}
+target_br=${VAXPECT_AUDIO_BITRATE:-"160"}
 target_codec=${VAXPECT_VIDEO_CODEC:-"x264"}
+target_opts=${VAXPECT_OPTS:-"--crop 0:0:0:0"}
 
 for file in "$@"
 do
 	height=`mediainfo --Inform="Video;%Height%" "$file"`
-	if [ $height -gt $target_hgt ]; then
+	if [ "$height" -gt "$target_hgt" ]; then
 		[ -d vaxpect ] || mkdir vaxpect
 		#out=`echo "$file" | sed -e 's/\.[A-Za-z0-9]*$/.$target_hgtp.mkv/'`
 		out=vaxpect/`echo "$file" | sed -e 's/\.[A-Za-z0-9]*$/.mkv/'`
+		outtmp=vaxpect/`echo "$file" | sed -e 's/\.[A-Za-z0-9]*$/.tmp.mkv/'`
 		if [ -e "$out" ] ; then
 			echo "Not overwriting $out"
 		else
-			HandBrakeCLI -i "$file" -o "$out"  -e $target_codec -q $target_q -B $target_br --height $target_hgt
+			HandBrakeCLI -i "$file" -o "$outtmp"  -e $target_codec -q $target_q -B $target_br --height $target_hgt $target_opts &&
+				mv  "$outtmp" "$out" &&
+				touch -r "$file" "$out"
 		fi
 	fi
 done
